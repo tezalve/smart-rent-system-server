@@ -24,6 +24,8 @@ async function run() {
         // await client.connect();
 
         const users = client.db('smart-rent-system').collection('users');
+        const properties = client.db('smart-rent-system').collection('properties');
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -34,12 +36,26 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/properties', async (req, res) => {
+            const cursor = properties.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
         app.get('/individual/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email: email }
             const user = await users.findOne(query);
             res.send(user);
         })
+
+        app.post('/addproperty', async (req, res) => {
+            const doc = req.body;
+            console.log(doc);
+            const result = await properties.insertOne(doc);
+            res.send(result);
+        })
+
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
