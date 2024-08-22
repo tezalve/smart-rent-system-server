@@ -49,6 +49,17 @@ async function run() {
             res.send(user);
         })
 
+        app.get('/inproperties/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const cursor = properties.find(query);
+            if ((await properties.countDocuments(query)) === 0) {
+                console.log("No documents found!");
+            }
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
         app.post('/addproperty', async (req, res) => {
             const doc = req.body;
             console.log(doc);
