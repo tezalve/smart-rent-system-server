@@ -67,6 +67,32 @@ async function run() {
             res.send(result);
         })
 
+        app.post('/adduser', async (req, res) => {
+            const doc = req.body;
+            const query = { email: doc.email }
+            const user = await users.findOne(query);
+            if (user == null) {
+                const result = await users.insertOne(doc);
+                res.send(result);
+                console.log("New user");
+            } else {
+                console.log("Old user");
+            }
+        })
+
+        app.patch('/updateuser/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const options = { upsert: false };
+            const updateDoc = {
+                $set: {
+                    role: req.body.role
+                },
+            };
+            const result = await users.updateOne(filter, updateDoc, options);
+            res.send(result);
+        })
+
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
