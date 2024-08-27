@@ -93,6 +93,19 @@ async function run() {
             res.send(result);
         })
 
+        app.patch('/updatepropertystatus/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: false };
+            const updateDoc = {
+                $set: {
+                    status: req.body.status
+                },
+            };
+            const result = await properties.updateOne(filter, updateDoc, options);
+            res.send(result);
+        })
+
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
