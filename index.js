@@ -106,6 +106,35 @@ async function run() {
             res.send(result);
         })
 
+        app.put('/updateproperty', async (req, res) => {
+            const doc = req.body;
+            const filter = { _id: new ObjectId(doc._id) };
+            const options = { upsert: false };
+            const updateDoc = {
+                $set: {
+                    image: doc.image,
+                    building_name: doc.building_name,
+                    flat_name: doc.flat_name,
+                    location: doc.location,
+                    rent: doc.rent,
+                    size: doc.size,
+                    availability: doc.availability,
+                },
+            };
+            console.log('updated class: ', updateDoc);
+            const result = await properties.updateOne(filter, updateDoc, options);
+            res.send(result);
+            console.log(
+                `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`,
+            );
+        })
+
+        app.get('/property/:id', async (req, res) => {
+            const id = new ObjectId(req.params.id);
+            const result = await properties.findOne({ _id: id });
+            res.send(result);
+        })
+
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
