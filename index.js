@@ -135,6 +135,16 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/approvedproperties', async (req, res) => {
+            const query = { status: 'approved' };
+            const cursor = properties.find(query);
+            if ((await properties.countDocuments(query)) === 0) {
+                console.log("No documents found!");
+            }
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
