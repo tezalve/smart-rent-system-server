@@ -25,6 +25,7 @@ async function run() {
 
         const users = client.db('smart-rent-system').collection('users');
         const properties = client.db('smart-rent-system').collection('properties');
+        const bookedproperties = client.db('smart-rent-system').collection('bookedproperties');
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
@@ -145,6 +146,41 @@ async function run() {
             res.send(result);
         })
 
+        app.post('/bookproperty', async (req, res) => {
+            const doc = req.body;
+            const result = await bookedproperties.insertOne(doc);
+            res.send(result);
+        })
+
+        app.get('/bookedproperties/:email', async (req, res) => {
+            const email = req.params.email;
+            console.log(email);
+            const query = { user_email: email, deleted: false};
+            const cursor = bookedproperties.find(query);
+            if ((await bookedproperties.countDocuments(query)) === 0) {
+                console.log("No documents found!");
+            }
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+        app.put('/deletebookedproperty', async (req, res) => {
+            const doc = req.body;
+            const filter = { _id: new ObjectId(doc._id) };
+            const options = { upsert: false };
+            const updateDoc = {
+                $set: {
+                    deleted: doc.deleted,
+                },
+            };
+            console.log('updated class: ', updateDoc);
+            const result = await bookedproperties.updateOne(filter, updateDoc, options);
+            res.send(result);
+            console.log(
+                `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`,
+            );
+        })
+
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
@@ -157,5 +193,5 @@ app.get('/', (req, res) => {
 })
 
 app.listen(port, () => {
-    console.log(`AA is running on port ${port}`);
+    console.log(`SRS is running on port ${port}`);
 })
