@@ -1,11 +1,13 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const body_parser = require('body-parser')
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+// app.use(cors());
+app.use(cors({credentials: true, origin: 'http://localhost:5173'}));
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.USER}:${process.env.PASS}@cluster0.vvdmedc.mongodb.net/?retryWrites=true&w=majority`;
@@ -17,6 +19,8 @@ const client = new MongoClient(uri, {
         deprecationErrors: true,
     }
 });
+
+app.use('/api', require('./routes/routes'))
 
 async function run() {
     try {
