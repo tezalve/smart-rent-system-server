@@ -7,7 +7,11 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 
 // app.use(cors());
-app.use(cors({credentials: true, origin: 'http://localhost:5173'}));
+app.use(cors({
+    credentials: true, 
+    origin: ('http://localhost:5173','https://smart-rent-system.web.app')
+}));
+// app.use(cors({credentials: true, origin: 'https://smart-rent-system.web.app'}));
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.USER}:${process.env.PASS}@cluster0.vvdmedc.mongodb.net/?retryWrites=true&w=majority`;
@@ -22,6 +26,10 @@ const client = new MongoClient(uri, {
 
 app.use('/api', require('./routes/routes'))
 
+app.get('/hello', (req, res) => {
+    res.send('hello');
+})
+
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
@@ -32,8 +40,8 @@ async function run() {
         const bookedproperties = client.db('smart-rent-system').collection('bookedproperties');
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
         app.get('/users', async (req, res) => {
             const cursor = users.find();
@@ -51,7 +59,9 @@ async function run() {
             const email = req.params.email;
             const query = { email: email }
             const user = await users.findOne(query);
-            res.send(user);
+            if (user){
+                res.send(user);
+            }
         })
 
         app.get('/inproperties/:email', async (req, res) => {
