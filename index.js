@@ -6,12 +6,12 @@ require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 
-// app.use(cors());
+app.use(cors());
 app.use(cors({
     credentials: true, 
-    origin: ('http://localhost:5173','https://smart-rent-system.web.app')
+    origin: ('https://smart-rent-system.web.app')
 }));
-// app.use(cors({credentials: true, origin: 'https://smart-rent-system.web.app'}));
+// app.use(cors({credentials: true, origin:('https://smart-rent-system.web.app', 'http://localhost:5173')}));
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.USER}:${process.env.PASS}@cluster0.vvdmedc.mongodb.net/?retryWrites=true&w=majority`;
@@ -128,6 +128,8 @@ async function run() {
             const updateDoc = {
                 $set: {
                     image: doc.image,
+                    image2: doc.image2,
+                    image3: doc.image3,
                     building_name: doc.building_name,
                     flat_name: doc.flat_name,
                     location: doc.location,
