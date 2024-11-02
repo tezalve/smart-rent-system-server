@@ -4,24 +4,45 @@ const cors = require('cors');
 const body_parser = require('body-parser')
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const mongoose = require('mongoose');
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+const allowedOrigins = [
+    'http://localhost:5173',
+    'https://smart-rent-system.web.app'
+];
+
 app.use(cors({
-    credentials: true, 
-    origin: ('https://smart-rent-system.web.app')
+    credentials: true,
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, origin); // Allow the origin
+        } else {
+            callback(new Error('Not allowed by CORS')); // Reject the request
+        }
+    }
 }));
-// app.use(cors({credentials: true, origin:('https://smart-rent-system.web.app', 'http://localhost:5173')}));
+
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.USER}:${process.env.PASS}@cluster0.vvdmedc.mongodb.net/?retryWrites=true&w=majority`;
-
 const client = new MongoClient(uri, {
     serverApi: {
         version: ServerApiVersion.v1,
         strict: true,
         deprecationErrors: true,
     }
+});
+
+const uriformongoose = `mongodb+srv://${process.env.USER}:${process.env.PASS}@cluster0.vvdmedc.mongodb.net/smart-rent-system?retryWrites=true&w=majority`;
+mongoose.connect(uriformongoose, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+}).then(() => {
+    console.log("Connected to MongoDB via Mongoose");
+}).catch((error) => {
+    console.error("Error connecting to MongoDB:", error);
 });
 
 app.use('/api', require('./routes/routes'))
