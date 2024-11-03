@@ -1,6 +1,7 @@
 const axios = require('axios')
 const paymentModel = require('../model/paymentModel')
 const bookedpropertyModel = require('../model/bookedpropertyModel')
+const propertyModel = require('../model/propertyModel')
 const globals = require('node-global-storage')
 const { v4: uuidv4 } = require('uuid')
 const { ObjectId } = require('mongodb');
@@ -16,9 +17,10 @@ class paymentController {
     }
 
     payment_create = async (req, res) => {
-        const { amount, userId, bookingId } = req.body
+        const { amount, userId, bookingId, propertyId } = req.body
         globals.setValue('userId', userId)
         globals.setValue('bookingId', bookingId)
+        globals.setValue('propertyId', propertyId)
         try {
             const { data } = await axios.post(process.env.bkash_create_payment_url, {
                 mode: '0011',
@@ -52,8 +54,10 @@ class paymentController {
                 if (data && data.statusCode === '0000') {
                     const userId = globals.getValue('userId');
                     const bookingId = globals.getValue('bookingId');
+                    const propertyId = globals.getValue('propertyId');
                     const paymentData = {
                         userId: userId,
+                        bookedPropertyId : bookingId,
                         paymentID: paymentID,
                         trxID: data.trxID,
                         date: data.paymentExecuteTime,
@@ -64,6 +68,10 @@ class paymentController {
                     await bookedpropertyModel.updateOne(
                         { _id: new ObjectId(bookingId) }, // Find the user by ID (or use any criteria relevant to your application)
                         { payment_done: true } // update 
+                    );
+                    await propertyModel.updateOne(
+                        { _id: new ObjectId(propertyId) }, // Find the user by ID (or use any criteria relevant to your application)
+                        { availability: 0 } // update 
                     );
                     return res.redirect(`http://localhost:5173/dashboard/bookedproperties`);
                 }else{

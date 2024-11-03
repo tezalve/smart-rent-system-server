@@ -4,6 +4,9 @@ const paymentSchema = new mongoose.Schema({
     userId: {
         type: String,
     },
+    bookedPropertyId: {
+        type: String,
+    },
     amount: {
         type: Number,
     },

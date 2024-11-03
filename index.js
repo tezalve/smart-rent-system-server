@@ -59,6 +59,7 @@ async function run() {
         const users = client.db('smart-rent-system').collection('users');
         const properties = client.db('smart-rent-system').collection('properties');
         const bookedproperties = client.db('smart-rent-system').collection('bookedproperties');
+        const maintenancerequests = client.db('smart-rent-system').collection('maintenancerequests');
 
         // Send a ping to confirm a successful connection
         // await client.db("admin").command({ ping: 1 });
@@ -191,8 +192,30 @@ async function run() {
 
         app.get('/bookedproperties/:email', async (req, res) => {
             const email = req.params.email;
-            console.log(email);
             const query = { user_email: email, deleted: false};
+            const cursor = bookedproperties.find(query);
+            if ((await bookedproperties.countDocuments(query)) === 0) {
+                console.log("No documents found!");
+            }
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+        app.get('/rentedproperty/:id', async (req, res) => {
+            const id = new ObjectId(req.params.id);
+            const query = { _id: id, deleted: false, payment_done: true};
+            const rentedProperty = await bookedproperties.findOne(query);
+            console.log(rentedProperty);
+            if (rentedProperty){
+                res.send(rentedProperty);
+            } else {
+                console.log("No documents found!");
+            }
+        })
+
+        app.get('/rentedproperties/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { user_email: email, deleted: false, payment_done: true};
             const cursor = bookedproperties.find(query);
             if ((await bookedproperties.countDocuments(query)) === 0) {
                 console.log("No documents found!");
@@ -216,6 +239,24 @@ async function run() {
             console.log(
                 `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`,
             );
+        })
+
+        app.post('/addmaintenance', async (req, res) => {
+            const doc = req.body;
+            console.log(doc);
+            const result = await maintenancerequests.insertOne(doc);
+            res.send(result);
+        })
+
+        app.get('/maintenancerequests/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { tenant_email: email, deleted: false};
+            const cursor = maintenancerequests.find(query);
+            if ((await maintenancerequests.countDocuments(query)) === 0) {
+                console.log("No documents found!");
+            }
+            const result = await cursor.toArray();
+            res.send(result);
         })
 
     } finally {
