@@ -99,7 +99,6 @@ async function run() {
 
         app.post('/addproperty', async (req, res) => {
             const doc = req.body;
-            console.log(doc);
             const result = await properties.insertOne(doc);
             res.send(result);
         })
@@ -160,12 +159,8 @@ async function run() {
                     availability: doc.availability,
                 },
             };
-            console.log('updated class: ', updateDoc);
             const result = await properties.updateOne(filter, updateDoc, options);
             res.send(result);
-            console.log(
-                `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`,
-            );
         })
 
         app.get('/property/:id', async (req, res) => {
@@ -233,12 +228,8 @@ async function run() {
                     deleted: doc.deleted,
                 },
             };
-            console.log('updated class: ', updateDoc);
             const result = await bookedproperties.updateOne(filter, updateDoc, options);
             res.send(result);
-            console.log(
-                `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`,
-            );
         })
 
         app.post('/addmaintenance', async (req, res) => {
@@ -248,15 +239,80 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/maintenancerequests/:email', async (req, res) => {
+        app.get('/maintenancerequests/:email/:role', async (req, res) => {
             const email = req.params.email;
-            const query = { tenant_email: email, deleted: false};
-            const cursor = maintenancerequests.find(query);
-            if ((await maintenancerequests.countDocuments(query)) === 0) {
-                console.log("No documents found!");
+            const role = req.params.role;
+            if (role === 'tenant') {
+                const query = { tenant_email: email, deleted: false};
+                const cursor = maintenancerequests.find(query);
+                if ((await maintenancerequests.countDocuments(query)) === 0) {
+                    console.log("No documents found!");
+                }
+                const result = await cursor.toArray();
+                res.send(result);
+            } else if (role === 'landlord') {
+                const query = { landlord_email: email, deleted: false};
+                const cursor = maintenancerequests.find(query);
+                if ((await maintenancerequests.countDocuments(query)) === 0) {
+                    console.log("No documents found!");
+                }
+                const result = await cursor.toArray();
+                res.send(result);
             }
-            const result = await cursor.toArray();
-            res.send(result);
+        })
+
+        app.patch('/updateconfirmation/:role/:id/:tenant_confirmation/:landlord_confirmation', async (req, res) => {
+            const role = req.params.role;
+            const id = new ObjectId(req.params.id);
+            const tenant_confirmation = req.params.tenant_confirmation;
+            const landlord_confirmation = req.params.landlord_confirmation;
+            const filter = { _id: id };
+            const options = { upsert: true };
+            if (role === "tenant") {
+                if (landlord_confirmation === "Satisfied") {
+                    const updateDoc = {
+                        $set: {
+                            tenant_confirmation: "Satisfied",
+                            resolved: true,
+                            updatedAt: new Date()
+                        },
+                    };
+                    const result = await maintenancerequests.updateOne(filter, updateDoc, options);
+                    res.send(result);
+                } else {
+                    const updateDoc = {
+                        $set: {
+                            tenant_confirmation: "Satisfied",
+                            updatedAt: new Date()
+                        },
+                    };
+                    const result = await maintenancerequests.updateOne(filter, updateDoc, options);
+                    res.send(result);
+                }
+            } else if (role === "landlord") {
+                if (tenant_confirmation === "Satisfied") {
+                    const updateDoc = {
+                        $set: {
+                            landlord_confirmation: "Satisfied",
+                            resolved: true,
+                            updatedAt: new Date()
+                        },
+                    };
+                    const result = await maintenancerequests.updateOne(filter, updateDoc, options);
+                    res.send(result);
+                } else {
+                    const updateDoc = {
+                        $set: {
+                            landlord_confirmation: "Satisfied",
+                            updatedAt: new Date()
+                        },
+                    };
+                    const result = await maintenancerequests.updateOne(filter, updateDoc, options);
+                    res.send(result);
+                }
+            } else {
+                console.log("no role found!");
+            }
         })
 
     } finally {
